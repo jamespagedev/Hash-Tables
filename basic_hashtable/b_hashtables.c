@@ -95,6 +95,34 @@ void hash_table_insert(BasicHashTable *ht, char *key, char *value)
 {
   // Note, since we are only writing a resize function in hashtables.c
   //    I'm NOT going to conditionally check if the ht is full and if so resize it.
+
+  // hash the key to get an array index
+  unsigned int index = hash(key, ht->capacity);
+
+  // check if the bucket at that index is occupied
+  Pair *curr_pair = ht->storage[index];
+  Pair *next_pair = NULL;
+
+  // if it is occupied, walk through the Pair's to see if you find
+  // check for a pair with the same key using strcmp.
+  while (curr_pair != NULL && strcmp(curr_pair->key, key) != 0)
+  {
+    next_pair = curr_pair;
+    curr_pair = next_pair;
+  }
+
+  // If you do, overwrite that value
+  if (curr_pair != NULL)
+  {
+    curr_pair->value = value;
+  }
+  // If not, create a new pair and add it to the LinkedList
+  else
+  {
+    // if it's not occupied, add a new Pair to the bucket
+    Pair *new_pair = create_pair(key, value);
+    ht->storage[index] = new_pair;
+  }
 }
 
 /****
@@ -130,7 +158,7 @@ int main(void)
 {
   struct BasicHashTable *ht = create_hash_table(16);
 
-  // hash_table_insert(ht, "line", "Here today...\n");
+  hash_table_insert(ht, "line", "Here today...\n");
 
   // printf("%s", hash_table_retrieve(ht, "line"));
 
