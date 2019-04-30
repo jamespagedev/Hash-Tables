@@ -141,7 +141,10 @@ void hash_table_remove(BasicHashTable *ht, char *key)
  ****/
 char *hash_table_retrieve(BasicHashTable *ht, char *key)
 {
-  return NULL;
+  // hash the key to get an array index
+  unsigned int index = hash(key, ht->capacity);
+  // if key_found ? return value : return NULL
+  return ht->storage[index] != NULL ? ht->storage[index]->value : NULL;
 }
 
 /****
@@ -160,7 +163,7 @@ int main(void)
 
   hash_table_insert(ht, "line", "Here today...\n");
 
-  // printf("%s", hash_table_retrieve(ht, "line"));
+  printf("%s", hash_table_retrieve(ht, "linee"));
 
   // hash_table_remove(ht, "line");
 
