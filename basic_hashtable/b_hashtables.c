@@ -163,7 +163,8 @@ int main(void)
 
   hash_table_insert(ht, "line", "Here today...\n");
 
-  printf("%s", hash_table_retrieve(ht, "linee"));
+  printf("%s", hash_table_retrieve(ht, "line"));  // Here today...
+  printf("%s", hash_table_retrieve(ht, "linee")); // (null)
 
   // hash_table_remove(ht, "line");
 
