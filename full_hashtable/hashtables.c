@@ -153,6 +153,52 @@ void hash_table_insert(HashTable *ht, char *key, char *value)
  */
 void hash_table_remove(HashTable *ht, char *key)
 {
+  // hash the key to get an array index
+  unsigned int index = hash(key, ht->capacity);
+
+  // If element of array index is NULL, return null
+  //    exit function
+  if (ht->storage[index] == NULL)
+  {
+    printf("Key \"%s\" was not found in the hash table\n", key);
+    return;
+  }
+
+  // If the head node in the link list is a match...
+  //    make the array index equal next node as the
+  //    new head (or NULL)
+  //    exit function
+  LinkedPair *curr_node = ht->storage[index];
+  if (strcmp(curr_node->key, ht->storage[index]->key) == 0)
+  {
+    ht->storage[index] = curr_node->next;
+    destroy_pair(curr_node);
+    return;
+  }
+
+  // Search through the link list for the node key matching given key...
+  LinkedPair *prev_node = curr_node;
+  curr_node = prev_node->next;
+
+  while (curr_node != NULL && strcmp(curr_node->key, key) != 0)
+  {
+    prev_node = curr_node;
+    curr_node = prev_node->next;
+  }
+
+  // If key was found in the current node of the link list
+  if (strcmp(curr_node->key, key) == 0)
+  {
+    // remove the current node from the link list
+    prev_node->next = curr_node->next;
+    // free the memory of the current node
+    destroy_pair(curr_node);
+    curr_node = NULL;
+  }
+  else
+  {
+    printf("Key \"%s\" was not found in the Link List\n", key);
+  }
 }
 
 /*
@@ -171,7 +217,7 @@ char *hash_table_retrieve(HashTable *ht, char *key)
   // If element of array index is NULL, return null
   if (ht->storage[index] == NULL)
   {
-    printf("Key was not found in the hash table\n");
+    printf("Key \"%s\" was not found in the hash table\n", key);
     return NULL;
   }
 
@@ -227,6 +273,15 @@ int main(void)
 
   printf("%s", hash_table_retrieve(ht, (char *)"line_1"));
   printf("%s", hash_table_retrieve(ht, (char *)"line_2"));
+  printf("%s", hash_table_retrieve(ht, (char *)"line_3"));
+  printf("\n");
+
+  // added for testing hash_table_remove -> removes a node from the link list
+  printf("...Removing the key/value pair \"line_2\"/\"Filled beyond capacity\" from the hash table...\n");
+  hash_table_remove(ht, (char *)"line_2");
+  printf("%s", hash_table_retrieve(ht, (char *)"line_1"));
+  printf("line_2 = %s", hash_table_retrieve(ht, (char *)"line_2"));
+  printf("\n");
   printf("%s", hash_table_retrieve(ht, (char *)"line_3"));
 
   // int old_capacity = ht->capacity;
