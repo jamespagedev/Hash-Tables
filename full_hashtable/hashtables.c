@@ -288,6 +288,27 @@ HashTable *hash_table_resize(HashTable *ht)
 {
   HashTable *new_ht = create_hash_table(ht->capacity * 2);
 
+  // iterate through the indexes of the hash table storage
+  for (int i = 0; i < ht->capacity; i++)
+  {
+    if (ht->storage[i] != NULL)
+    {
+      // Save local copy of the head node, and set the element of storage index to NULL
+      LinkedPair *node = ht->storage[i];
+      // iterate through the link list and remove the nodes
+      while (node != NULL)
+      {
+        // add the key and value from the node to the new hash table
+        hash_table_insert(new_ht, node->key, node->value);
+        // check the next node
+        node = node->next;
+      }
+    }
+  }
+
+  // Destroy old hash table
+  destroy_hash_table(ht);
+
   return new_ht;
 }
 
@@ -313,11 +334,11 @@ int main(void)
   printf("\n");
   printf("%s", hash_table_retrieve(ht, (char *)"line_3"));
 
-  // int old_capacity = ht->capacity;
-  // ht = hash_table_resize(ht);
-  // int new_capacity = ht->capacity;
+  int old_capacity = ht->capacity;
+  ht = hash_table_resize(ht);
+  int new_capacity = ht->capacity;
 
-  // printf("\nResizing hash table from %d to %d.\n", old_capacity, new_capacity);
+  printf("\nHash table has been resized from %d to %d.\n", old_capacity, new_capacity);
 
   destroy_hash_table(ht);
 
