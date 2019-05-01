@@ -245,6 +245,35 @@ char *hash_table_retrieve(HashTable *ht, char *key)
  */
 void destroy_hash_table(HashTable *ht)
 {
+  // iterate through the hash table storage array
+  for (int i = 0; i < ht->capacity; i++)
+  {
+    // If current element of storage index is not Null
+    if (ht->storage[i] != NULL)
+    {
+      // Save local copy of the head node, and set the element of storage index to NULL
+      LinkedPair *curr_node = ht->storage[i];
+      LinkedPair *next_node = curr_node->next;
+      ht->storage[i] = NULL;
+      // iterate through the link list and remove the nodes
+      while (next_node != NULL)
+      {
+        destroy_pair(curr_node);
+        curr_node = next_node;
+        next_node = curr_node->next;
+      }
+      // remove the last node
+      destroy_pair(curr_node);
+    }
+  }
+
+  // free the storage
+  free(ht->storage);
+  ht->storage = NULL;
+
+  // free the hash table
+  free(ht);
+  ht = NULL;
 }
 
 /*
@@ -290,7 +319,7 @@ int main(void)
 
   // printf("\nResizing hash table from %d to %d.\n", old_capacity, new_capacity);
 
-  // destroy_hash_table(ht);
+  destroy_hash_table(ht);
 
   return 0;
 }
