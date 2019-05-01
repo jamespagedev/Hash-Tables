@@ -25,7 +25,7 @@ typedef struct BasicHashTable
  ****/
 Pair *create_pair(char *key, char *value)
 {
-  Pair *pair = malloc(sizeof(Pair));
+  Pair *pair = (Pair *)malloc(sizeof(Pair));
   pair->key = strdup(key);
   pair->value = strdup(value);
 
@@ -77,9 +77,9 @@ BasicHashTable *create_hash_table(int capacity)
     return NULL;
   }
 
-  BasicHashTable *ht = malloc(sizeof(BasicHashTable *));
+  BasicHashTable *ht = (BasicHashTable *)malloc(sizeof(BasicHashTable));
   ht->capacity = capacity;
-  ht->storage = calloc(capacity, sizeof(Pair *));
+  ht->storage = (Pair **)calloc(capacity, sizeof(Pair *));
 
   return ht;
 }
@@ -101,19 +101,12 @@ void hash_table_insert(BasicHashTable *ht, char *key, char *value)
 
   // check if the bucket at that index is occupied
   Pair *curr_pair = ht->storage[index];
-  Pair *next_pair = NULL;
-
-  // if it is occupied, walk through the Pair's to see if you find
-  // check for a pair with the same key using strcmp.
-  while (curr_pair != NULL && strcmp(curr_pair->key, key) != 0)
-  {
-    next_pair = curr_pair;
-    curr_pair = next_pair;
-  }
 
   // If you do, overwrite that value
   if (curr_pair != NULL)
   {
+    printf("key indexed into an occupied slot, key and value will be overwritten...\n");
+    curr_pair->key = key;
     curr_pair->value = value;
   }
   // If not, create a new pair and add it to the LinkedList
@@ -132,6 +125,15 @@ void hash_table_insert(BasicHashTable *ht, char *key, char *value)
  ****/
 void hash_table_remove(BasicHashTable *ht, char *key)
 {
+  // hash the key to get an array index
+  unsigned int index = hash(key, ht->capacity);
+
+  // if key_found, destroy pair(free's the address and pointer), and set element of array to null
+  if (ht->storage[index] != NULL)
+  {
+    destroy_pair(ht->storage[index]);
+    ht->storage[index] = NULL;
+  }
 }
 
 /****
@@ -154,28 +156,40 @@ char *hash_table_retrieve(BasicHashTable *ht, char *key)
  ****/
 void destroy_hash_table(BasicHashTable *ht)
 {
+  for (int i = 0; i < ht->capacity; i++)
+  {
+    if (ht->storage[i])
+    {
+      hash_table_remove(ht, ht->storage[i]->key);
+    }
+  }
+  free(ht);
+  ht = NULL;
 }
 
 #ifndef TESTING
-int main(void)
+int main(int argc, char *argv[])
 {
+  (void)argc;
+  (void)argv;
   struct BasicHashTable *ht = create_hash_table(16);
 
-  hash_table_insert(ht, "line", "Here today...\n");
+  hash_table_insert(ht, (char *)"line", (char *)"Here today...\n");
 
-  printf("%s", hash_table_retrieve(ht, "line"));  // Here today...
-  printf("%s", hash_table_retrieve(ht, "linee")); // (null)
+  printf("%s", hash_table_retrieve(ht, (char *)"line"));  // Here today...
+  printf("%s", hash_table_retrieve(ht, (char *)"linee")); // (null)
+  printf("\n");
 
-  // hash_table_remove(ht, "line");
+  hash_table_remove(ht, (char *)"line");
 
-  // if (hash_table_retrieve(ht, "line") == NULL)
-  // {
-  //   printf("...gone tomorrow. (success)\n");
-  // }
-  // else
-  // {
-  //   fprintf(stderr, "ERROR: STILL HERE\n");
-  // }
+  if (hash_table_retrieve(ht, (char *)"line") == NULL)
+  {
+    printf("...gone tomorrow. (success)\n"); // Pass
+  }
+  else
+  {
+    fprintf(stderr, "ERROR: STILL HERE\n"); // Fail
+  }
 
   destroy_hash_table(ht);
 
