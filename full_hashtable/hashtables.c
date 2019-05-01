@@ -22,6 +22,7 @@ typedef struct LinkedPair
 typedef struct HashTable
 {
   int capacity;
+  int count;
   LinkedPair **storage;
 } HashTable;
 
@@ -30,7 +31,7 @@ typedef struct HashTable
  */
 LinkedPair *create_pair(char *key, char *value)
 {
-  LinkedPair *pair = malloc(sizeof(LinkedPair));
+  LinkedPair *pair = (LinkedPair *)malloc(sizeof(LinkedPair));
   pair->key = strdup(key);
   pair->value = strdup(value);
   pair->next = NULL;
@@ -48,6 +49,7 @@ void destroy_pair(LinkedPair *pair)
     free(pair->key);
     free(pair->value);
     free(pair);
+    pair = NULL;
   }
 }
 
@@ -77,7 +79,15 @@ unsigned int hash(char *str, int max)
  */
 HashTable *create_hash_table(int capacity)
 {
-  HashTable *ht;
+  if (capacity < 1)
+  {
+    return NULL;
+  }
+
+  HashTable *ht = (HashTable *)malloc(sizeof(HashTable));
+  ht->capacity = capacity;
+  ht->count = 0;
+  ht->storage = (LinkedPair **)calloc(capacity, sizeof(LinkedPair *));
 
   return ht;
 }
@@ -93,6 +103,44 @@ HashTable *create_hash_table(int capacity)
  */
 void hash_table_insert(HashTable *ht, char *key, char *value)
 {
+  // hash the key to get an array index
+  unsigned int index = hash(key, ht->capacity);
+
+  // check if the element in the array index is null
+  //    if so, create a new LinkPair and assign it to the index, and exit the function
+  if (ht->storage[index] == NULL)
+  {
+    LinkedPair *new_pair = create_pair(key, value);
+    ht->storage[index] = new_pair;
+    ht->count++;
+    return;
+  }
+
+  // Continue if a link list exists at the array index...
+  LinkedPair *curr_pair = ht->storage[index];
+  LinkedPair *next_pair = curr_pair->next;
+
+  // While key is not found in node of link list
+  //    check every node until key is found or until the last node is the curr_pair
+  while (next_pair != NULL && strcmp(curr_pair->key, key) != 0)
+  {
+    curr_pair = next_pair;
+    next_pair = curr_pair->next;
+  }
+
+  // If key is found, overwrite that value
+  if (strcmp(curr_pair->key, key) == 0)
+  {
+    printf("key is already in use, value will be overwritten...\n");
+    curr_pair->value = value;
+  }
+  // If not, create a new pair and add it to the LinkedList (not to be confused with the index)
+  else
+  {
+    // if it's not occupied, add a new Pair to the bucket
+    LinkedPair *new_pair = create_pair(key, value);
+    curr_pair->next = new_pair;
+  }
 }
 
 /*
@@ -117,7 +165,7 @@ void hash_table_remove(HashTable *ht, char *key)
  */
 char *hash_table_retrieve(HashTable *ht, char *key)
 {
-  return NULL;
+  return key;
 }
 
 /*
@@ -139,7 +187,7 @@ void destroy_hash_table(HashTable *ht)
  */
 HashTable *hash_table_resize(HashTable *ht)
 {
-  HashTable *new_ht;
+  HashTable *new_ht = create_hash_table(ht->capacity * 2);
 
   return new_ht;
 }
@@ -149,21 +197,21 @@ int main(void)
 {
   struct HashTable *ht = create_hash_table(2);
 
-  hash_table_insert(ht, "line_1", "Tiny hash table\n");
-  hash_table_insert(ht, "line_2", "Filled beyond capacity\n");
-  hash_table_insert(ht, "line_3", "Linked list saves the day!\n");
+  hash_table_insert(ht, (char *)"line_1", (char *)"Tiny hash table\n");
+  hash_table_insert(ht, (char *)"line_2", (char *)"Filled beyond capacity\n");
+  hash_table_insert(ht, (char *)"line_3", (char *)"Linked list saves the day!\n");
 
-  printf("%s", hash_table_retrieve(ht, "line_1"));
-  printf("%s", hash_table_retrieve(ht, "line_2"));
-  printf("%s", hash_table_retrieve(ht, "line_3"));
+  // printf("%s", hash_table_retrieve(ht, (char *)"line_1"));
+  // printf("%s", hash_table_retrieve(ht, (char *)"line_2"));
+  // printf("%s", hash_table_retrieve(ht, (char *)"line_3"));
 
-  int old_capacity = ht->capacity;
-  ht = hash_table_resize(ht);
-  int new_capacity = ht->capacity;
+  // int old_capacity = ht->capacity;
+  // ht = hash_table_resize(ht);
+  // int new_capacity = ht->capacity;
 
-  printf("\nResizing hash table from %d to %d.\n", old_capacity, new_capacity);
+  // printf("\nResizing hash table from %d to %d.\n", old_capacity, new_capacity);
 
-  destroy_hash_table(ht);
+  // destroy_hash_table(ht);
 
   return 0;
 }
