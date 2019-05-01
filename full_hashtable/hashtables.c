@@ -165,7 +165,31 @@ void hash_table_remove(HashTable *ht, char *key)
  */
 char *hash_table_retrieve(HashTable *ht, char *key)
 {
-  return key;
+  // hash the key to get an array index
+  unsigned int index = hash(key, ht->capacity);
+
+  // If element of array index is NULL, return null
+  if (ht->storage[index] == NULL)
+  {
+    printf("Key was not found in the hash table\n");
+    return NULL;
+  }
+
+  // Search the link list for the node key matching given key...
+  LinkedPair *node = ht->storage[index];
+  while (node != NULL && strcmp(node->key, key) != 0)
+  {
+    node = node->next;
+  }
+
+  // If the node was found, return the value of the key
+  if (node != NULL)
+  {
+    return node->value;
+  }
+
+  // Default return
+  return NULL;
 }
 
 /*
@@ -201,9 +225,9 @@ int main(void)
   hash_table_insert(ht, (char *)"line_2", (char *)"Filled beyond capacity\n");
   hash_table_insert(ht, (char *)"line_3", (char *)"Linked list saves the day!\n");
 
-  // printf("%s", hash_table_retrieve(ht, (char *)"line_1"));
-  // printf("%s", hash_table_retrieve(ht, (char *)"line_2"));
-  // printf("%s", hash_table_retrieve(ht, (char *)"line_3"));
+  printf("%s", hash_table_retrieve(ht, (char *)"line_1"));
+  printf("%s", hash_table_retrieve(ht, (char *)"line_2"));
+  printf("%s", hash_table_retrieve(ht, (char *)"line_3"));
 
   // int old_capacity = ht->capacity;
   // ht = hash_table_resize(ht);
