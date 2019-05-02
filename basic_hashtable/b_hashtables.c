@@ -39,9 +39,8 @@ void destroy_pair(Pair *pair)
 {
   if (pair != NULL)
   {
-    free(pair->key);
-    free(pair->value);
     free(pair);
+    pair = NULL;
   }
 }
 
@@ -163,6 +162,8 @@ void destroy_hash_table(BasicHashTable *ht)
       hash_table_remove(ht, ht->storage[i]->key);
     }
   }
+  free(ht->storage);
+  ht->storage = NULL;
   free(ht);
   ht = NULL;
 }
